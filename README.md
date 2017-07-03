@@ -19,7 +19,7 @@ Register extension in your config.neon file:
 
 ```yaml 
 extensions:
-	predisClient: Ublaboo\PredisClientNetteExtension\DI\PredisClientNetteExtension
+    predisClient: Ublaboo\PredisClientNetteExtension\DI\PredisClientNetteExtension
 ```
 
 ## Configuration
@@ -28,10 +28,10 @@ Configure extension in your `config.neon` file:
 
 ```yaml
 predisClient:
-	uri: tcp://127.0.0.1:32768
-	options:
-		prefix: "fooPrefix:"
-		# other options
+    uri: tcp://127.0.0.1:32768
+    options:
+        prefix: "fooPrefix:"
+        # other options
 ```
 
 ## Usage
