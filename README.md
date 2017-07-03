@@ -1,90 +1,73 @@
-# aws-sdk-nette-extension
-A Nette extension for the AWS SDK for PHP http://aws.amazon.com/sdkforphp/
+[![Latest Stable Version](https://poser.pugx.org/ublaboo/predis-client-nette-extension/v/stable)](https://packagist.org/packages/ublaboo/predis-client-nette-extension)
+[![License](https://poser.pugx.org/ublaboo/predis-client-nette-extension/license)](https://packagist.org/packages/ublaboo/predis-client-nette-extension)
+[![Total Downloads](https://poser.pugx.org/ublaboo/predis-client-nette-extension/downloads)](https://packagist.org/packages/ublaboo/predis-client-nette-extension)
+[![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/ublaboo/help)
+
+# ublaboo/predis-client-nette-extension
+
+Nette DIC extension for [predis/predis](https://github.com/nrk/predis) client
 
 ## Installation
 
 Download extension using composer
 
 ```
-composer require ublaboo/aws-sdk-nette-extension
+composer require ublaboo/predis-client-nette-extension
 ```
 
 Register extension in your config.neon file:
 
-``` 
+```yaml 
 extensions:
-	aws: Ublaboo\AwsSdkNetteExtension\DI\AwsSdkNetteExtension
+	predisClient: Ublaboo\PredisClientNetteExtension\DI\PredisClientNetteExtension
 ```
 
 ## Configuration
 
 Configure extension in your `config.neon` file:
 
-``` 
-aws:
-	region: eu-west-1
-	version: latest
+```yaml
+predisClient:
+	uri: tcp://127.0.0.1:32768
+	options:
+		prefix: "fooPrefix:"
+		# other options
 ```
 
-And put your key and secret in your `config.local.neon` file (which should not be versioned)
-
-``` 
-aws:
-	credentials:
-		key: your_access_key
-		secret: your_secret_access_key
-```
-			
 ## Usage
 
-Ideally create some services wrapping the S3 client with your logic inside them
-
 ```php
-class S3Service
+<?php
+
+declare(strict_types=1);
+
+use Predis\Client;
+
+class Foo
 {
 
 	/**
-	 * @var \Aws\S3\S3Client
+	 * @var Client
 	 */
-	public $s3;
+	public $redisClient;
 
 
-	public function __construct(\Aws\S3\S3Client $s3)
+	public function __construct(Client $redisClient)
 	{
-		$this->s3 = $s3;
+		$this->redisClient = $redisClient;
 	}
 
 
-	public function save($path_to_file)
+	public function save(string $key, string $value): void
 	{
-		$this->s3->putObject([
-			'Bucket'     => 'YourBucket',
-			'Key'        => 'YourObjectKey',
-			'SourceFile' => $path_to_file,
-		]);
+		$this->redisClient->set($key, $value);
+	}
+	
+	
+	public function retrive(string $key): ?string
+	{
+		return $this->redisClient->get($key);
 	}
 
 }
 ```
-
-And use them in your presenters:
-
-```php
-class HomepagePresenter extends Presenter
-{
-
-	/**
-	 * @var S3Service
-	 * @inject
-	 */
-	public $service;
-
-
-	public function actionDefault()
-	{
-		$this->service->save('/path/to/file');
-	}
-
-}
-```
-
