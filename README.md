@@ -28,9 +28,9 @@ Configure extension in your `config.neon` file:
 
 ```yaml
 predisClient:
-    uri: tcp://127.0.0.1:32768
+    uri: 'tcp://127.0.0.1:32768'
     options:
-        prefix: "fooPrefix:"
+        prefix: 'fooPrefix:'
         # other options
 ```
 
