@@ -32,6 +32,7 @@ predisClient:
     options:
         prefix: 'fooPrefix:'
         # other options
+    sessions: true # Whether to register redis session handler or not
 ```
 
 ## Usage
