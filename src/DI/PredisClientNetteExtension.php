@@ -9,7 +9,9 @@
 namespace Ublaboo\PredisClientNetteExtension\DI;
 
 use Nette\DI\CompilerExtension;
+use Nette\Http\Session;
 use Predis\Client;
+use Predis\Session\Handler;
 
 class PredisClientNetteExtension extends CompilerExtension
 {
@@ -20,7 +22,8 @@ class PredisClientNetteExtension extends CompilerExtension
 		 * @see https://github.com/nrk/predis#connecting-to-redis
 		 */
 		'uri' => 'tcp://127.0.0.1:6379',
-		'options' => []
+		'options' => [],
+		'sessions' => false
 	];
 
 	/**
@@ -48,6 +51,13 @@ class PredisClientNetteExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('client'))
 			->setClass(Client::class)
 			->setArguments([$this->config['uri'], $this->config['options']]);
-	}
 
+		if ($this->config['sessions']) {
+			$sessionHandler = $builder->addDefinition($this->prefix('sessionHandler'))
+				->setClass(Handler::class);
+
+			$builder->getDefinition($builder->getByType(Session::class))
+				->addSetup('setHandler', [$sessionHandler]);
+		}
+	}
 }
