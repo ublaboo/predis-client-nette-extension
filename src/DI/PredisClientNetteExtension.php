@@ -23,7 +23,8 @@ class PredisClientNetteExtension extends CompilerExtension
 		 */
 		'uri' => 'tcp://127.0.0.1:6379',
 		'options' => [],
-		'sessions' => false
+		'sessions' => false,
+		'sessionsTtl' => null,
 	];
 
 	/**
@@ -48,13 +49,14 @@ class PredisClientNetteExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
-		$builder->addDefinition($this->prefix('client'))
+		$client = $builder->addDefinition($this->prefix('client'))
 			->setClass(Client::class)
 			->setArguments([$this->config['uri'], $this->config['options']]);
 
 		if ($this->config['sessions']) {
 			$sessionHandler = $builder->addDefinition($this->prefix('sessionHandler'))
-				->setClass(Handler::class);
+				->setClass(Handler::class)
+				->setArguments([$client, ['gc_maxlifetime' => $this->config['sessionsTtl']]]);
 
 			$builder->getDefinition($builder->getByType(Session::class))
 				->addSetup('setHandler', [$sessionHandler]);
