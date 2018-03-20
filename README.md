@@ -33,6 +33,7 @@ predisClient:
         prefix: 'fooPrefix:'
         # other options
     sessions: true # Whether to register redis session handler or not
+    sessionsTtl: null # Seconds or null (null = ini_get('session.gc_maxlifetime'))
 ```
 
 ## Usage
