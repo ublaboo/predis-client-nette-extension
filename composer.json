@@ -20,7 +20,14 @@
 		}
 	},
 	"require": {
-		"nette/di" : "^2.3|^2.4",
-		"predis/predis" : "^1.1"
+		"nette/di": "^3.0",
+		"predis/predis": "^1.1"
+	},
+	"require-dev": {
+		"gamee/php-code-checker-rules": "^1.2"
+	},
+	"scripts": {
+		"phpstan": "php -d memory_limit=256M vendor/phpstan/phpstan/bin/phpstan analyse src -c vendor/gamee/php-code-checker-rules/phpstan.neon --level 7",
+		"phpcs": "vendor/bin/phpcs --standard=vendor/gamee/php-code-checker-rules/ruleset.xml --extensions=php,phpt --tab-width=4 --ignore=temp -sp src"
 	}
 }

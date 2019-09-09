@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @copyright   Copyright (c) 2017 ublaboo <ublaboo@paveljanda.com>
  * @author      Pavel Janda <me@paveljanda.com>
@@ -9,14 +11,18 @@
 namespace Ublaboo\PredisClientNetteExtension\DI;
 
 use Nette\DI\CompilerExtension;
-use Nette\Http\Session;
+use Nette\DI\Definitions\FactoryDefinition;
+use Nette\DI\Definitions\ServiceDefinition;
 use Predis\Client;
 use Predis\Session\Handler;
 
-class PredisClientNetteExtension extends CompilerExtension
+/**
+ * @property-read array $config
+ */
+final class PredisClientNetteExtension extends CompilerExtension
 {
 
-	private $defaults = [
+	private const DEFAULTS = [
 		/**
 		 * Or UNIX socket: 'unix:/path/to/redis.sock' or other options
 		 * @see https://github.com/nrk/predis#connecting-to-redis
@@ -27,18 +33,13 @@ class PredisClientNetteExtension extends CompilerExtension
 		'sessionsTtl' => null,
 	];
 
-	/**
-	 * @var array
-	 */
-	protected $config;
-
 
 	/**
 	 * @return void
 	 */
 	public function loadConfiguration()
 	{
-		$this->config = $this->validateConfig($this->defaults, $this->config);
+		$this->validateConfig(self::DEFAULTS);
 	}
 
 
@@ -53,13 +54,35 @@ class PredisClientNetteExtension extends CompilerExtension
 			->setClass(Client::class)
 			->setArguments([$this->config['uri'], $this->config['options']]);
 
-		if ($this->config['sessions']) {
+		if ($this->config['sessions'] === true) {
+			if (!class_exists('Nette\Http\Session')) {
+				throw new \LogicException('Class Nette\Http\Session does not exist');
+			}
+
 			$sessionHandler = $builder->addDefinition($this->prefix('sessionHandler'))
 				->setClass(Handler::class)
-				->setArguments([$client, ['gc_maxlifetime' => $this->config['sessionsTtl']]]);
+				->setArguments([$client, ['gc_maxlifetime' => $this->config['sessionsTtl']]])
+				->getResultDefinition();
 
-			$builder->getDefinition($builder->getByType(Session::class))
-				->addSetup('setHandler', [$sessionHandler]);
+			$sessionName = $builder->getByType('Nette\Http\Session');
+
+			if ($sessionName === null) {
+				throw new \UnexpectedValueException;
+			}
+
+			$session = $builder->getDefinition($sessionName);
+
+			if ($session instanceof ServiceDefinition) {
+				/**
+				 * OK
+				 */
+			} elseif ($session instanceof FactoryDefinition) {
+				$session = $session->getResultDefinition();
+			} else {
+				throw new \UnexpectedValueException;
+			}
+
+			$session->addSetup('setHandler', [$sessionHandler]);
 		}
 	}
 }
